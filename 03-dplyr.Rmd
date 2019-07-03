@@ -24,7 +24,7 @@ suppressWarnings(surveys$date <- lubridate::ymd(paste(surveys$year,
 > * Link the output of one **`dplyr`** function to the input of another function with the 'pipe' operator `%>%`.
 > * Add new columns to a data frame that are functions of existing columns with `mutate`.
 > * Use the split-apply-combine concept for data analysis.
-> * Use `summarize`, `group_by`, and `count` to split a data frame into groups of observations, apply a summary statistics for each group, and then combine the results.
+> * Use `summarize`, `group_by`, and `count` to split a data frame into groups of observations, apply summary statistics for each group, and then combine the results.
 > * Describe the concept of a wide and a long table format and for which purpose those formats are useful.
 > * Describe what key-value pairs are.
 > * Reshape a data frame from long to wide format and back with the `spread` and `gather` commands from the **`tidyr`** package.
@@ -49,7 +49,7 @@ work together well such as **`tidyr`**, **`dplyr`**, **`ggplot2`**, **`tibble`**
 
 
 The **`tidyverse`** package tries to address 3 common issues that arise when
-doing data analysis with some of functions that come with R:
+doing data analysis with some of the functions that come with R:
 
 1. The results from a base R function sometimes depend on the type of data.
 2. Using R expressions in a non standard way, which can be confusing for new
@@ -59,14 +59,16 @@ doing data analysis with some of functions that come with R:
 
 We have seen in our previous lesson that when building or importing a data frame, the columns that contain characters (i.e., text) are coerced (=converted) into the `factor` data type. We had to set **`stringsAsFactors`** to **`FALSE`** to avoid this hidden argument to convert our data type. 
 
-This time will use the **`tidyverse`** package to read the data and avoid having to set **`stringsAsFactors`** to **`FALSE`**
+This time we will use the **`tidyverse`** package to read the data and avoid having to set **`stringsAsFactors`** to **`FALSE`**
 
-To load the package type:
+If we haven't already done so, we can type `install.packages("tidyverse")` straight into the console. In fact, it's better to write this in the console than in our script for any package, as there's no need to re-install packages every time we run the script.
+
+Then, to load the package type:
 
 
 ```{r, message = FALSE, purl = FALSE}
 ## load the tidyverse packages, incl. dplyr
-library("tidyverse")
+library(tidyverse)
 ```
 
 ## What are **`dplyr`** and **`tidyr`**?
@@ -98,9 +100,11 @@ surveys <- read_csv("data/portal_data_joined.csv")
 
 ## inspect the data
 str(surveys)
+```
 
+```{r, eval=FALSE, purl=FALSE}
 ## preview the data
-# View(surveys)
+View(surveys)
 ```
 
 Notice that the class of the data is now `tbl_df`
@@ -114,6 +118,7 @@ This is referred to as a "tibble". Tibbles tweak some of the behaviors of the da
 
 
 We're going to learn some of the most common **`dplyr`** functions:
+
 - `select()`: subset columns
 - `filter()`: subset rows on conditions
 - `mutate()`: create new columns by using information from other columns
@@ -123,13 +128,23 @@ We're going to learn some of the most common **`dplyr`** functions:
 
 ## Selecting columns and filtering rows
 
-To select columns of a
-data frame, use `select()`. The first argument to this function is the data
-frame (`surveys`), and the subsequent arguments are the columns to keep.
+To select columns of a data frame, use `select()`. The first argument
+to this function is the data frame (`surveys`), and the subsequent
+arguments are the columns to keep.
 
 ```{r, results = 'hide', purl = FALSE}
 select(surveys, plot_id, species_id, weight)
 ```
+
+To select all columns *except* certain ones, put a "-" in front of
+the variable to exclude it.
+
+```{r, results = 'hide', purl = FALSE}
+select(surveys, -record_id, -species_id)
+```
+
+This will select all the variables in `surveys` except `record_id`
+and `species_id`.
 
 To choose rows based on a specific criteria, use `filter()`:
 
@@ -204,7 +219,7 @@ Note that the final data frame is the leftmost part of this expression.
 
 > ### Challenge {.challenge}
 >
->  Using pipes, subset the `surveys` data to include individuals collected before
+>  Using pipes, subset the `surveys` data to include animals collected before
 >  1995 and retain only the columns `year`, `sex`, and `weight`.
 > 
 > 
@@ -216,7 +231,7 @@ Note that the final data frame is the leftmost part of this expression.
 
 ```{r, eval=FALSE, purl=TRUE, echo=FALSE}
 ## Pipes Challenge:
-##  Using pipes, subset the data to include individuals collected
+##  Using pipes, subset the data to include animals collected
 ##  before 1995, and retain the columns `year`, `sex`, and `weight.`
 ```
 
@@ -326,8 +341,8 @@ surveys %>%
   summarize(mean_weight = mean(weight, na.rm = TRUE))
 ```
 
-When grouping both by `sex` and `species_id`, the last few rows are for individuals
-that escaped before their sex could be determined and weighted. You may notice
+When grouping both by `sex` and `species_id`, the last few rows are for animals
+that escaped before their sex and body weights could be determined. You may notice
 that the last column does not contain `NA` but `NaN` (which refers to "Not a
 Number"). To avoid this, we can remove the missing values for weight before we
 attempt to calculate the summary statistics on weight. Because the missing
@@ -365,7 +380,7 @@ surveys %>%
             min_weight = min(weight))
 ```
 
-It is sometimes useful to rearrange the result of a query to inspect the values. For instance, we can sort on `min_weight` to put the species with the small hindfoot length first:
+It is sometimes useful to rearrange the result of a query to inspect the values. For instance, we can sort on `min_weight` to put the lighter species first:
 
 
 ```{r, purl = FALSE}
@@ -401,17 +416,48 @@ surveys %>%
     count(sex) 
 ```
 
-For convenience, `count()` provides the `sort` argument:
+The `count()` function is shorthand for something we've already seen: grouping by a variable, and summarizing it by counting the number of observations in that group. In other words, `surveys %>% count()` is equivalent to:  
 
+```{r, purl = FALSE}
+surveys %>%
+    group_by(sex) %>%
+    summarise(count = n())
+```
+
+For convenience, `count()` provides the `sort` argument:  
 
 ```{r, purl = FALSE}
 surveys %>%
     count(sex, sort = TRUE) 
 ```
 
+Previous example shows the use of `count()` to count the number of rows/observations 
+for *one* factor (i.e., `sex`). 
+If we wanted to count *combination of factors*, such as `sex` and `species`, 
+we would specify the first and the second factor as the arguments of `count()`:
+
+```{r purl = FALSE}
+surveys %>%
+  count(sex, species) 
+```
+
+With the above code, we can proceed with `arrange()` to sort the table 
+according to a number of criteria so that we have a better comparison. 
+For instance, we might want to arrange the table above in (i) an alphabetical order of 
+the levels of the species and (ii) in descending order of the count:
+
+```{r purl = FALSE}
+surveys %>%
+  count(sex, species) %>%
+  arrange(species, desc(n))
+```
+
+From the table above, we may learn that, for instance, there are 75 observations of 
+the *albigula* species that are not specified for its sex (i.e. `NA`).
+
 > ### Challenge {.challenge}
 >
-> 1. How many individuals were caught in each `plot_type` surveyed?
+> 1. How many animals were caught in each `plot_type` surveyed?
 >
 > ```{r, answer=TRUE, purl=FALSE}
 > surveys %>%
@@ -449,7 +495,7 @@ surveys %>%
 
 ```{r, eval=FALSE, purl=TRUE, echo=FALSE}
 ## Count Challenges:
-##  1. How many individuals were caught in each `plot_type` surveyed?
+##  1. How many animals were caught in each `plot_type` surveyed?
 
 ##  2. Use `group_by()` and `summarize()` to find the mean, min, and max
 ## hindfoot length for each species (using `species_id`). Also add the number of
@@ -474,11 +520,11 @@ dataset:
 Here we examine the fourth rule: Each type of observational unit forms a table.
 
 In `surveys` , the rows of `surveys` contain the values of variables associated
-with each record (the unit), values such the weight or sex of each animal 
+with each record (the unit), values such as the weight or sex of each animal 
 associated with each record. What if instead of comparing records, we 
 wanted to compare the different mean weight of each species between plots? (Ignoring `plot_type` for simplicity).
 
-We'd need to create a new table where each row (the unit) is comprise of values of variables associated with each plot. In practical terms this means the values
+We'd need to create a new table where each row (the unit) is comprised of values of variables associated with each plot. In practical terms this means the values
 of the species in `genus` would become the names of column variables and the cells would contain the values of the mean weight observed on each plot.
 
 Having created a new table, it is therefore straightforward to explore the 
@@ -520,7 +566,7 @@ str(surveys_gw)
 ```
 
 This yields `surveys_gw` where the observations for each plot are spread across
-multiple rows, 196 observations of 13 variables. 
+multiple rows, 196 observations of 3 variables. 
 Using `spread()` to key on `genus` with values from `mean_weight` this becomes
 24 observations of 11 variables, one row for each plot. We again use pipes:
 
@@ -675,11 +721,7 @@ re-generate them.
 In preparation for our next lesson on plotting, we are going to prepare a
 cleaned up version of the data set that doesn't include any missing data.
 
-Let's start by removing observations for which the `species_id` is missing. In
-this data set, the missing species are represented by an empty string and not an
-`NA`. Let's also remove observations for which `weight` and the
-`hindfoot_length` are missing. This data set should also only contain
-observations of animals for which the sex has been determined:
+Let's start by removing observations of animals for which `weight` and `hindfoot_length` are missing, or the `sex` has not been determined:
 
 
 ```{r, purl=FALSE}

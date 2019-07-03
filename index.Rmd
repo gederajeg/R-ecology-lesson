@@ -1,5 +1,5 @@
 ---
-title: "Data Carpentry: R for data analysis and visualization of Ecological Data"
+title: "Data Analysis and Visualization in R for Ecologists"
 author: François Michonneau & Auriel Fournier (Lesson Maintainers)
 ---
 
@@ -86,7 +86,7 @@ your operating system, and then follow the instructions to install
 * Run the `.exe` file that was just downloaded
 * Go to the [RStudio download page](https://www.rstudio.com/products/rstudio/download/#download)
 * Under *Installers* select **RStudio x.yy.zzz - Windows
-  XP/Vista/7/8** (where x, y, and z represent version numbers)
+  Vista/7/8/10** (where x, y, and z represent version numbers)
 * Double click the file to install it
 * Once it's installed, open RStudio to make sure it works and you don't get any
   error messages.
@@ -146,9 +146,11 @@ your operating system, and then follow the instructions to install
 * After starting RStudio, at the console type:
   `install.packages(c("tidyverse", "RSQLite"))`
 
+* You can also do this by going to Tools -> Install Packages and typing the names of the packages separated by a comma.
+
 ## Contributors
 
-The list of contributors to this lesson is available [here](http://datacarpentry.org/R-ecology-lesson/CITATION),
+The list of contributors to this lesson is available [here](http://datacarpentry.org/R-ecology-lesson/CITATION).
 
 
 ```{r, child="_page_built_on.Rmd"}
